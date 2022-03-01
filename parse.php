@@ -1,7 +1,7 @@
 <?php
 ini_set('display_errors', 'stderr');
 
-include "parser_ext/Ret_Codes.php";
+include "parse_ext/Ret_Codes.php";
 
 const HELP = <<<EOD
             The script of filter type reads the source code in IPP-code22, 
@@ -17,7 +17,8 @@ const FRAMES = "(GF|LF|TF)";
 const NIL = "(nil@nil)";
 const BOOL = "(bool@(true|false))";
 const INT = "(int@((\+|\-)?[0-9]+))";
-CONST STRING = "((string)@((\\\\[0-9]{3})|[^\s\#\\\\])*)";
+const STRING = "((string)@((\\\\[0-9]{3})|[^\s\#\\\\])*)";
+const TYPE = "~^(bool|int|string)$~";
 const CONSTANT = "(" . NIL . "|" . BOOL . "|" . INT . "|" . STRING . ")";
 const IDENTIFIER_SOLO = "([A-Za-z" . SPEC_CHAR . "][0-9A-Za-z" . SPEC_CHAR . "]*)";
 const IDENTIFIER = "~^" . IDENTIFIER_SOLO . "$~";
@@ -130,12 +131,14 @@ while ($line = fgets(STDIN)) {
                 fwrite(STDERR, "Error: symbol identifier\n");
                 exit(Ret_Codes::LEX_SYN_ERR);
             }
-            $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
-            $type = explode("@", $line_args[1])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[1], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
+                $arg1->setAttribute("type", "var");
+            } else {
+                $arg1 = $xml->createElement("arg1", htmlspecialchars($type[1]));
+                $arg1->setAttribute("type", $type[0]);
             }
-            $arg1->setAttribute("type", $type);
             $xmlInstruction->appendChild($arg1);
             break;
         # <var> <symb>
@@ -157,18 +160,37 @@ while ($line = fgets(STDIN)) {
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
-            $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-            $type = explode("@", $line_args[2])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[2], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
+                $arg2->setAttribute("type", "var");
+            } else {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
+                $arg2->setAttribute("type", $type[0]);
             }
-            $arg2->setAttribute("type", $type);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             break;
         # <var> <type>
         case "READ":
-//            echo "<var> <type>";
+            if (count($line_args) != 3) {
+                fwrite(STDERR, "Error: wrong count of operands\n");
+                exit(Ret_Codes::LEX_SYN_ERR);
+            }
+            if (!preg_match(VARIABLE, $line_args[1])) {
+                fwrite(STDERR, "Error: variable identifier\n");
+                exit(Ret_Codes::LEX_SYN_ERR);
+            }
+            if (!preg_match(TYPE, $line_args[2])) {
+                fwrite(STDERR, "Error: type identifier\n");
+                exit(Ret_Codes::LEX_SYN_ERR);
+            }
+            $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
+            $arg1->setAttribute("type", "var");
+            $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
+            $arg2->setAttribute("type", "type");
+            $xmlInstruction->appendChild($arg1);
+            $xmlInstruction->appendChild($arg2);
             break;
         # <var> <symb1> <symb2>
         case "ADD":
@@ -203,18 +225,22 @@ while ($line = fgets(STDIN)) {
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
-            $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-            $type = explode("@", $line_args[2])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[2], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
+                $arg2->setAttribute("type", "var");
+            } else {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
+                $arg2->setAttribute("type", $type[0]);
             }
-            $arg2->setAttribute("type", $type);
-            $arg3 = $xml->createElement("arg3", htmlspecialchars($line_args[3]));
-            $type = explode("@", $line_args[3])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[3], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg3 = $xml->createElement("arg2", htmlspecialchars($line_args[3]));
+                $arg3->setAttribute("type", "var");
+            } else {
+                $arg3 = $xml->createElement("arg2", htmlspecialchars($type[1]));
+                $arg3->setAttribute("type", $type[0]);
             }
-            $arg3->setAttribute("type", $type);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             $xmlInstruction->appendChild($arg3);
@@ -240,18 +266,22 @@ while ($line = fgets(STDIN)) {
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "label");
-            $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-            $type = explode("@", $line_args[2])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[2], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
+                $arg2->setAttribute("type", "var");
+            } else {
+                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
+                $arg2->setAttribute("type", $type[0]);
             }
-            $arg2->setAttribute("type", $type);
-            $arg3 = $xml->createElement("arg3", htmlspecialchars($line_args[3]));
-            $type = explode("@", $line_args[3])[0];
-            if ($type == "GF" || $type == "LF" || $type == "TF") {
-                $type = "var";
+            $type = explode("@", $line_args[3], 2);
+            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+                $arg3 = $xml->createElement("arg2", htmlspecialchars($line_args[3]));
+                $arg3->setAttribute("type", "var");
+            } else {
+                $arg3 = $xml->createElement("arg2", htmlspecialchars($type[1]));
+                $arg3->setAttribute("type", $type[0]);
             }
-            $arg3->setAttribute("type", $type);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             $xmlInstruction->appendChild($arg3);
