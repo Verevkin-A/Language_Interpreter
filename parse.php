@@ -1,16 +1,46 @@
 <?php
+/**
+ * IPPcode22 parser
+ * @author Aleksandr Verevkin (xverev00), VUT FIT IPP 2021/2022
+ */
+
 ini_set('display_errors', 'stderr');
-
-include "parse_ext/Ret_Codes.php";
-
+// class with utilities
+final class Utils
+{
+    // errors
+    const PARAM_ERR = 10;
+    const HEADER_ERR = 21;
+    const OPCODE_ERR = 22;
+    const LEX_SYN_ERR = 23;
+    // method for print error message and exit program with given return code
+    function error(int $err, string $msg) {
+        fwrite(STDERR, "Error: " . $msg . "\n");
+        exit($err);
+    }
+    // method that check if symbol is variable or type representation
+    function check_symb(string $operand, DOMDocument $xml, int $arg_num) {
+        $type = explode("@", $operand, 2);
+        if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
+            $arg = $xml->createElement("arg$arg_num", htmlspecialchars($operand));
+            $arg->setAttribute("type", "var");
+        } else {
+            $arg = $xml->createElement("arg$arg_num", htmlspecialchars($type[1]));
+            $arg->setAttribute("type", $type[0]);
+        }
+        return $arg;
+    }
+}
+// help message
 const HELP = <<<EOD
-            The script of filter type reads the source code in IPP-code22, 
+            The script of filter type reads the source code in IPPcode22, 
             checks the lexical and syntactic correctness of the code and 
             prints to standard output XML representation of the program. 
             
             Usage: php8.1 parse.php < file [--help]
               --help prints short help message\n
 EOD;
+// regex representation of identifiers
 const SPEC_CHAR = "_\-$&%*!?";
 const HEADER = "%^\.IPPcode22$%i";
 const FRAMES = "(GF|LF|TF)";
@@ -25,6 +55,8 @@ const IDENTIFIER = "~^" . IDENTIFIER_SOLO . "$~";
 const VARIABLE_SOLO = "(" . FRAMES . "@" . IDENTIFIER_SOLO . ")";
 const VARIABLE = "~^" . VARIABLE_SOLO . "$~";
 const SYMBOL = "~^(" . CONSTANT . "|" . VARIABLE_SOLO . ")$~";
+$utils = new Utils();
+# check for arguments
 switch ($argc) {
     case 1:
         break;
@@ -33,27 +65,24 @@ switch ($argc) {
             echo HELP;
             exit;
         } else {
-            fwrite(STDERR, "Error: unknown parameter\n");
-            exit(Ret_Codes::PARAM_ERR);
+            $utils->error(UTILS::PARAM_ERR, "unknown parameter");
         }
     default:
-        fwrite(STDERR, "Error: wrong count of parameters\n");
-        exit(Ret_Codes::PARAM_ERR);
+        $utils->error(UTILS::PARAM_ERR, "wrong count of parameters");
 }
-
+// create output xml document
 $xml = new DOMDocument("1.0", "UTF-8");
 $xml->formatOutput = true;
 
 $xml_program = $xml->createElement("program");
 $xml_program = $xml->appendChild($xml_program);
-
 $xml_lang = $xml->createAttribute("language");
 $xml_lang->value = "IPPcode22";
 $xml_program->appendChild($xml_lang);
 
-
 $ln = 0;
 $header = false;
+// go through input file, line by line
 while ($line = fgets(STDIN)) {
     $line = trim(explode("#", $line)[0]);
     if ($line == "") {
@@ -65,125 +94,99 @@ while ($line = fgets(STDIN)) {
             $header = true;
             continue;
         } else {
-            fwrite(STDERR, "Input file should start with '.IPPcode22' header\n");
-            exit(Ret_Codes::HEADER_ERR);
+            $utils->error(UTILS::HEADER_ERR, "input file should start with '.IPPcode22' header");
         }
     }
-    $line_args = explode(" ", $line);
+    // split line into an operand and operands
+    $line_args = preg_split("/\s+/", $line);
     $ln++;
     $xmlInstruction = $xml->createElement("instruction");
     $xmlInstruction->setAttribute("order", $ln);
     $xmlInstruction->setAttribute("opcode", strtoupper($line_args[0]));
-
+    // check first line argument on operand
     switch (strtoupper($line_args[0])) {
-        # no operands
+        // no operands
         case "CREATEFRAME":
         case "PUSHFRAME":
         case "POPFRAME":
         case "RETURN":
         case "BREAK":
             if (count($line_args) != 1) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             break;
-        # <var>
+        // <var>
         case "DEFVAR":
         case "POPS":
             if (count($line_args) != 2) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
-                fwrite(STDERR, "Error: variable identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
             $xmlInstruction->appendChild($arg1);
             break;
-        # <label>
+        // <label>
         case "CALL":
         case "LABEL":
         case "JUMP":
             if (count($line_args) != 2) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(IDENTIFIER, $line_args[1])) {
-                fwrite(STDERR, "Error: label identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "label identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "label");
             $xmlInstruction->appendChild($arg1);
             break;
-        # <symb>
+        // <symb>
         case "PUSHS":
         case "WRITE":
         case "EXIT":
         case "DPRINT":
             if (count($line_args) != 2) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(SYMBOL, $line_args[1])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
-            $type = explode("@", $line_args[1], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
-                $arg1->setAttribute("type", "var");
-            } else {
-                $arg1 = $xml->createElement("arg1", htmlspecialchars($type[1]));
-                $arg1->setAttribute("type", $type[0]);
-            }
+            $arg1 = $utils->check_symb($line_args[1], $xml, 1);
             $xmlInstruction->appendChild($arg1);
             break;
-        # <var> <symb>
+        // <var> <symb>
         case "MOVE":
         case "INT2CHAR":
         case "STRLEN":
         case "TYPE":
+        case "NOT":
             if (count($line_args) != 3) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
-                fwrite(STDERR, "Error: variable identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
             }
             if (!preg_match(SYMBOL, $line_args[2])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
-            $type = explode("@", $line_args[2], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-                $arg2->setAttribute("type", "var");
-            } else {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
-                $arg2->setAttribute("type", $type[0]);
-            }
+            $arg2 = $utils->check_symb($line_args[2], $xml, 2);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             break;
-        # <var> <type>
+        // <var> <type>
         case "READ":
             if (count($line_args) != 3) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
-                fwrite(STDERR, "Error: variable identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
             }
             if (!preg_match(TYPE, $line_args[2])) {
-                fwrite(STDERR, "Error: type identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "type identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
@@ -192,7 +195,7 @@ while ($line = fgets(STDIN)) {
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             break;
-        # <var> <symb1> <symb2>
+        // <var> <symb1> <symb2>
         case "ADD":
         case "SUB":
         case "MUL":
@@ -202,98 +205,57 @@ while ($line = fgets(STDIN)) {
         case "EQ":
         case "AND":
         case "OR":
-        case "NOT":
         case "STRI2INT":
         case "CONCAT":
         case "GETCHAR":
         case "SETCHAR":
             if (count($line_args) != 4) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
-                fwrite(STDERR, "Error: variable identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
             }
             if (!preg_match(SYMBOL, $line_args[2])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
             if (!preg_match(SYMBOL, $line_args[3])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "var");
-            $type = explode("@", $line_args[2], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-                $arg2->setAttribute("type", "var");
-            } else {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
-                $arg2->setAttribute("type", $type[0]);
-            }
-            $type = explode("@", $line_args[3], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg3 = $xml->createElement("arg2", htmlspecialchars($line_args[3]));
-                $arg3->setAttribute("type", "var");
-            } else {
-                $arg3 = $xml->createElement("arg2", htmlspecialchars($type[1]));
-                $arg3->setAttribute("type", $type[0]);
-            }
+            $arg2 = $utils->check_symb($line_args[2], $xml, 2);
+            $arg3 = $utils->check_symb($line_args[3], $xml, 3);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             $xmlInstruction->appendChild($arg3);
             break;
-        # <label> <symb1> <symb2>
+        // <label> <symb1> <symb2>
         case "JUMPIFEQ":
         case "JUMPIFNEQ":
             if (count($line_args) != 4) {
-                fwrite(STDERR, "Error: wrong count of operands\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
             }
             if (!preg_match(IDENTIFIER, $line_args[1])) {
-                fwrite(STDERR, "Error: identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "label identifier");
             }
             if (!preg_match(SYMBOL, $line_args[2])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
             if (!preg_match(SYMBOL, $line_args[3])) {
-                fwrite(STDERR, "Error: symbol identifier\n");
-                exit(Ret_Codes::LEX_SYN_ERR);
+                $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
             }
             $arg1 = $xml->createElement("arg1", htmlspecialchars($line_args[1]));
             $arg1->setAttribute("type", "label");
-            $type = explode("@", $line_args[2], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($line_args[2]));
-                $arg2->setAttribute("type", "var");
-            } else {
-                $arg2 = $xml->createElement("arg2", htmlspecialchars($type[1]));
-                $arg2->setAttribute("type", $type[0]);
-            }
-            $type = explode("@", $line_args[3], 2);
-            if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
-                $arg3 = $xml->createElement("arg2", htmlspecialchars($line_args[3]));
-                $arg3->setAttribute("type", "var");
-            } else {
-                $arg3 = $xml->createElement("arg2", htmlspecialchars($type[1]));
-                $arg3->setAttribute("type", $type[0]);
-            }
+            $arg2 = $utils->check_symb($line_args[2], $xml, 2);
+            $arg3 = $utils->check_symb($line_args[3], $xml, 3);
             $xmlInstruction->appendChild($arg1);
             $xmlInstruction->appendChild($arg2);
             $xmlInstruction->appendChild($arg3);
             break;
         default:
-            fwrite(STDERR, "Error: unknown opcode\n");
-            exit(Ret_Codes::OPCODE_ERR);
+            $utils->error(UTILS::OPCODE_ERR, "unknown opcode");
     }
-
     $xml_program->appendChild($xmlInstruction);
 }
-
 echo $xml->saveXML();
-
 exit;
