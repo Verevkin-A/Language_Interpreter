@@ -1,0 +1,21 @@
+"""Interpret return codes
+"""
+
+
+class RetCodes:
+    PARAM_ERR = 10
+    OPEN_IN_ERR = 11
+    OPEN_OUT_ERR = 12
+
+    XML_FORMAT_ERR = 31
+    XML_STRUCT_ERR = 32
+
+    SEMANTIC_ERR = 52
+    OPP_TYPE_ERR = 53
+    VAR_NOT_EXIST_ERR = 54
+    FRAME_NOT_EXIST_ERR = 55
+    VALUE_NOT_EXIST_ERR = 56
+    OPP_VALUE_ERR = 57
+    STRING_ERR = 58
+
+    INTERNAL_ERR = 99
