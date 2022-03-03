@@ -33,12 +33,14 @@ final class Utils
 }
 // help message
 const HELP = <<<EOD
+            usage: php8.1 parse.php < file [--help]
+
             The script of filter type reads the source code in IPPcode22, 
             checks the lexical and syntactic correctness of the code and 
             prints to standard output XML representation of the program. 
-            
-            Usage: php8.1 parse.php < file [--help]
-              --help prints short help message\n
+
+            options:
+              --help        prints short help message\n
 EOD;
 // regex representation of identifiers
 const SPEC_CHAR = "_\-$&%*!?";
