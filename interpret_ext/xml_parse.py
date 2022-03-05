@@ -6,6 +6,9 @@ from re import match
 
 from ret_codes import RetCodes
 from utils import Utils
+from instructions import *
+from types_ import *
+from program import Program
 
 
 class XMLParse:
@@ -32,7 +35,7 @@ class XMLParse:
 
     def sort_xml(self) -> None:
         """Sort XML source file into dictionary with instructions"""
-        instructions_data: Dict[int, List] = {}
+        instructions_data: Dict[int, Instruction] = {}
         for inst in self._xml_root:
             if inst.tag != "instruction":
                 Utils.error(f"unknown element ({inst.tag})", RetCodes.XML_STRUCT_ERR)
@@ -47,54 +50,69 @@ class XMLParse:
             except ValueError:
                 Utils.error(f"order must be positive integer (given: {inst.attrib['order']})", RetCodes.XML_STRUCT_ERR)
 
+            arguments: List = self.sort_arguments(inst)
+            instr_cls: str = inst.attrib["opcode"].title()
+            instruction = eval(instr_cls)(arguments, instr_cls)
             try:
                 instructions_data[inst_order]
             except KeyError:
-                arguments: List = self.sort_arguments(inst)
-                instructions_data[inst_order] = arguments
+                instructions_data[inst_order] = instruction
             else:
                 Utils.error(f"instruction order key already exist ({inst_order})", RetCodes.XML_STRUCT_ERR)
 
         instructions_data = dict(sorted(instructions_data.items()))     # sort instructions by their order
         print(instructions_data)
+        print(Program.instance())
 
     def check_header(self) -> None:
         """Check program header for correct name and attributes"""
         if self._xml_root.tag != "program":
             Utils.error(f"invalid root name ({self._xml_root.tag})", RetCodes.XML_STRUCT_ERR)
-        if "language" not in self._xml_root.attrib.keys():
+        try:
+            if self._xml_root.attrib["language"].lower() != "ippcode22":
+                Utils.error(f"only IPPcode22 language in root supported (given: {self._xml_root.attrib['language']})",
+                            RetCodes.XML_STRUCT_ERR)
+            for attr in self._xml_root.attrib.keys():
+                if attr not in self._ROOT_ATTRIBUTES:
+                    Utils.error(f"unsupported root attribute ({attr})", RetCodes.XML_STRUCT_ERR)
+        except KeyError:
             Utils.error("root language attribute not stated", RetCodes.XML_STRUCT_ERR)
-        if self._xml_root.attrib["language"].lower() != "ippcode22":
-            Utils.error(f"only IPPcode22 language in root supported (given: {self._xml_root.attrib['language']})",
-                        RetCodes.XML_STRUCT_ERR)
-        for attr in self._xml_root.attrib.keys():
-            if attr not in self._ROOT_ATTRIBUTES:
-                Utils.error(f"unsupported root attribute ({attr})", RetCodes.XML_STRUCT_ERR)
 
-    @staticmethod
-    def sort_arguments(inst: ET.Element) -> list:
+    def sort_arguments(self, inst: ET.Element) -> list:
         """Getting arguments from XML instruction
 
         :param inst: instruction
-        :return: list with arguments as tuples
+        :return: list with arguments
         """
-        instruction_args: List[Tuple] = []
+        instruction_args: List = [Types]
         for arg in inst:
-            if match(r"^(arg[123])$", arg.tag):
+            if not match(r"^(arg[123])$", arg.tag):
+                Utils.error("unknown argument name", RetCodes.XML_STRUCT_ERR)
+            else:
                 # check if type attribute was given
                 if len(arg.attrib) != 1 or arg.attrib.get("type") is None:
                     Utils.error("bad argument attributes", RetCodes.XML_STRUCT_ERR)
                 arg_order = int(arg.tag[-1])
                 # check if type attribute was given more than once
-                if arg_order in [argument[0] for argument in instruction_args]:
+                if arg_order in [argument.get_order for argument in instruction_args]:
                     Utils.error("repeating argument order", RetCodes.XML_STRUCT_ERR)
                 else:
-                    instruction_args.append(tuple([arg_order, arg.attrib["type"], arg.text]))
-            else:
-                Utils.error("unknown argument name", RetCodes.XML_STRUCT_ERR)
-        instruction_args = sorted(instruction_args, key=lambda x: x[0])
+                    instruction_args.append(self.assign_type(arg_order, arg.attrib["type"], arg.text))
+
+        instruction_args = sorted(instruction_args[1:])
         # check if arguments aren't missing
-        if (len(instruction_args) == 2 and instruction_args[1][0] != 2) or \
-                (len(instruction_args) == 1 and instruction_args[0][0] != 1):
+        if (len(instruction_args) == 2 and instruction_args[1].get_order != 2) or \
+                (len(instruction_args) == 1 and instruction_args[0].get_order != 1):
             Utils.error("missing arguments", RetCodes.XML_STRUCT_ERR)
         return instruction_args
+
+    @staticmethod
+    def assign_type(order: int, type_: str, value: str) -> Types:
+        if type_ == "int" or type_ == "bool" or type_ == "string":
+            return Constant(order, type_, value)
+        elif type_ == "var":
+            return Variable(order, value)
+        elif type_ == "label":
+            return Label(order, value)
+        elif type_ == "type":
+            return Type(order, value)
