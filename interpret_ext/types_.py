@@ -1,7 +1,13 @@
+from program import Program
+from utils import Utils
+from ret_codes import RetCodes
+
+
 class Types:
     def __init__(self, order, value):
         self.order = order
         self.value = value
+        self.program: Program = Program.get_instance()
 
     def __eq__(self, other):
         return self.order == other.order
@@ -23,14 +29,14 @@ class Types:
 
 class Variable(Types):
     def __init__(self, order: int, value: str):
-        self._frame, value = value.split("@")
+        self.frame, value = value.split("@")
         super().__init__(order, value)
 
 
 class Constant(Types):
     def __init__(self, order: int, type_: str, value: str):
         super().__init__(order, value)
-        self._type = type_
+        self.type_ = type_
 
 
 class Label(Types):

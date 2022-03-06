@@ -1,7 +1,7 @@
 """Parsing instructions and their arguments from XML"""
 
 import xml.etree.ElementTree as ET
-from typing import TextIO, Dict, List, Tuple
+from typing import TextIO, Dict, List
 from re import match
 
 from ret_codes import RetCodes
@@ -31,9 +31,9 @@ class XMLParse:
         self._xml_root = self._xml_tree.getroot()
 
         self.check_header()
-        self.sort_xml()
+        self._instructions = self.sort_xml()
 
-    def sort_xml(self) -> None:
+    def sort_xml(self) -> List:
         """Sort XML source file into dictionary with instructions"""
         instructions_data: Dict[int, Instruction] = {}
         for inst in self._xml_root:
@@ -60,9 +60,8 @@ class XMLParse:
             else:
                 Utils.error(f"instruction order key already exist ({inst_order})", RetCodes.XML_STRUCT_ERR)
 
-        instructions_data = dict(sorted(instructions_data.items()))     # sort instructions by their order
-        print(instructions_data)
-        print(Program.instance())
+        sorted_instructions = dict(sorted(instructions_data.items()))     # sort instructions by their order
+        return [value for value in instructions_data.values()]  # return only instructions
 
     def check_header(self) -> None:
         """Check program header for correct name and attributes"""
@@ -116,3 +115,8 @@ class XMLParse:
             return Label(order, value)
         elif type_ == "type":
             return Type(order, value)
+
+    @property
+    def get_instructions(self):
+        """Instructions getter method"""
+        return self._instructions

@@ -1,10 +1,11 @@
 """Interpret facade class"""
 
-from typing import TextIO
+from typing import TextIO, List
 
 from args_parse import ArgsParse
 from xml_parse import XMLParse
 from program import Program
+from instructions import *
 
 
 class Interpret:
@@ -13,9 +14,16 @@ class Interpret:
         args = ArgsParse()
         self._source: TextIO = args.get_source
         self._input: TextIO = args.get_input
-        # program info instance
+
         program = Program()
 
         xml = XMLParse(self._source)
+        self._instructions = xml.get_instructions
+
+        program.process_instructions(self._instructions)
+
+        program.eval_program()
+
 
 Interpret()
+
