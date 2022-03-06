@@ -1,10 +1,8 @@
 from program import Program
-from utils import Utils
-from ret_codes import RetCodes
 
 
 class Types:
-    def __init__(self, order, value):
+    def __init__(self, value, order: int = -1):
         self.order = order
         self.value = value
         self.program: Program = Program.get_instance()
@@ -28,25 +26,33 @@ class Types:
 
 
 class Variable(Types):
-    def __init__(self, order: int, value: str):
-        self.frame, value = value.split("@")
-        super().__init__(order, value)
+    def __init__(self, value: str, order: int = -1):
+        self._frame, value = value.split("@")
+        super().__init__(value, order)
+
+    @property
+    def get_frame(self):
+        return self._frame
 
 
 class Constant(Types):
-    def __init__(self, order: int, type_: str, value: str):
-        super().__init__(order, value)
+    def __init__(self, type_: str, value: str, order: int = -1):
+        super().__init__(value, order)
         self.type_ = type_
+
+    @property
+    def get_type(self):
+        return self.type_
 
 
 class Label(Types):
-    def __init__(self, order: int, value: str):
-        super().__init__(order, value)
+    def __init__(self, value: str, order: int = -1):
+        super().__init__(value, order)
 
 
 class Type(Types):
-    def __init__(self, order: int, value: str):
-        super().__init__(order, value)
+    def __init__(self, value: str, order: int = -1):
+        super().__init__(value, order)
 
 
 

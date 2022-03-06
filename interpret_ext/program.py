@@ -1,7 +1,7 @@
 """Main program information"""
 
 from typing import List, Dict, Union
-from utils import Utils
+import utils
 from ret_codes import RetCodes
 import instructions
 import types_
@@ -52,52 +52,60 @@ class Program:
                 break
 
     def is_exist(self, var):
-        if var.frame == "GF":
+        if var.get_frame == "GF":
             return var.value in self.get_global_frame
-        elif var.frame == "LF":
+        elif var.get_frame == "LF":
             if len(self.get_local_frame) == 0:
-                Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
+                utils.Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
             return var.value in self.get_local_frame[-1]
-        elif var.frame == "TF":
+        elif var.get_frame == "TF":
             if self.get_tmp_frame is None:
-                Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
+                utils.Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
             return var.value in self.get_tmp_frame
 
-
     def var_init(self, var):
-        if var.frame == "GF":
+        if var.get_frame == "GF":
             self.global_frame[var.value] = None
-        elif var.frame == "LF":
+        elif var.get_frame == "LF":
             self.local_frame[-1][var.value] = None
-        elif var.frame == "TF":
+        elif var.get_frame == "TF":
             self.tmp_frame[var.value] = None
 
     def var_set(self, var, value):
         if not self.is_exist(var):
-            Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
-        if var.frame == "GF":
+            utils.Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
+        if var.get_frame == "GF":
             self.global_frame[var.value] = value
-        elif var.frame == "LF":
+        elif var.get_frame == "LF":
             self.local_frame[-1][var.value] = value
-        elif var.frame == "TF":
+        elif var.get_frame == "TF":
             self.tmp_frame[var.value] = value
 
-    def get_value(self, var: Union[types_.Variable, types_.Constant]):
+    def get_value(self, var):
         if isinstance(var, types_.Constant):
             return var
         else:
             if not self.is_exist(var):
-                Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
+                utils.Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
             var_value = None
-            if var.frame == "GF":
+            if var.get_frame == "GF":
                 var_value = self.get_global_frame[var.value]
-            elif var.frame == "LF":
+            elif var.get_frame == "LF":
                 var_value = self.get_local_frame[-1][var.value]
-            elif var.frame == "TF":
+            elif var.get_frame == "TF":
                 var_value = self.get_tmp_frame[var.value]
             if var_value is None:
-                Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
+                utils.Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
             return var_value
+
+    def get_stats(self):
+        return f"Global frame: {self.get_global_frame}" \
+               f"Local frame: {self.get_local_frame}" \
+               f"Temporary frame: {self.get_tmp_frame}" \
+               f"Data stack: {self.get_data_stack}" \
+               f"Call stack: {self.get_call_stack}" \
+               f"Labels: {self.get_labels}" \
+               f"Program pointer: {self.program_ptr}"
 
     @property
     def get_labels(self):

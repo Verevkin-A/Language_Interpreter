@@ -26,4 +26,4 @@ class Interpret:
 
 
 Interpret()
-
+# print("fuckyou" < "guckmeee")

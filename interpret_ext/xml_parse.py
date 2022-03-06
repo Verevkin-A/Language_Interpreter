@@ -108,13 +108,13 @@ class XMLParse:
     @staticmethod
     def assign_type(order: int, type_: str, value: str) -> Types:
         if type_ == "int" or type_ == "bool" or type_ == "string":
-            return Constant(order, type_, value)
+            return Constant(type_, value, order=order)
         elif type_ == "var":
-            return Variable(order, value)
+            return Variable(value, order=order)
         elif type_ == "label":
-            return Label(order, value)
+            return Label(value, order=order)
         elif type_ == "type":
-            return Type(order, value)
+            return Type(value, order=order)
 
     @property
     def get_instructions(self):
