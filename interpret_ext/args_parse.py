@@ -4,8 +4,8 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 from sys import stdin, argv
 from typing import TextIO
 
-from utils import Utils
-from ret_codes import RetCodes
+from interpret_ext.utils import Utils
+from interpret_ext.ret_codes import RetCodes
 
 
 class ArgsParse:

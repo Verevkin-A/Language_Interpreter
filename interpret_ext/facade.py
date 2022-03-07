@@ -2,10 +2,9 @@
 
 from typing import TextIO, List
 
-from args_parse import ArgsParse
-from xml_parse import XMLParse
-from program import Program
-from instructions import *
+from interpret_ext.args_parse import ArgsParse
+from interpret_ext.xml_parse import XMLParse
+from interpret_ext.program import Program
 
 
 class Interpret:
@@ -15,20 +14,11 @@ class Interpret:
         self._source: TextIO = args.get_source
         self._input: TextIO = args.get_input
 
-        program = Program()
+        prog = Program(self._input)
 
         xml = XMLParse(self._source)
         self._instructions = xml.get_instructions
 
-        program.process_instructions(self._instructions)
+        prog.process_instructions(self._instructions)
 
-        program.eval_program()
-
-
-Interpret()
-# import re
-# value = r"string\032haha\032lol"
-#
-# escapePattern = re.compile(r'(\\[0-9]{3})', re.UNICODE)
-# string = re.sub(escapePattern, lambda x: chr(int(x.group()[1:])), value)
-# print(string)
+        prog.eval_program()

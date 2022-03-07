@@ -1,11 +1,10 @@
-from program import Program
+import re
 
 
 class Types:
     def __init__(self, value, order: int = -1):
         self.order = order
         self.value = value
-        # self.program: Program = Program.get_instance()
 
     def __eq__(self, other):
         return self.order == other.order
@@ -39,6 +38,9 @@ class Constant(Types):
     def __init__(self, type_: str, value: str, order: int = -1):
         super().__init__(value, order)
         self.type_ = type_
+        if self.type_ == "string":
+            pattern = re.compile(r'(\\[0-9]{3})', re.UNICODE)
+            self.value = re.sub(pattern, lambda x: chr(int(x.group()[1:])), self.value)
 
     @property
     def get_type(self):

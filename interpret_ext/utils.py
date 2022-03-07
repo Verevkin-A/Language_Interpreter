@@ -3,8 +3,8 @@
 from sys import stderr
 from typing import Callable
 
-from types_ import Constant
-from ret_codes import RetCodes
+from interpret_ext.types_ import Constant
+from interpret_ext.ret_codes import RetCodes
 
 
 class Utils:

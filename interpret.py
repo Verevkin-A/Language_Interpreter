@@ -10,7 +10,7 @@ __author__ = "Aleksandr Verevkin (xverev00)"
 
 
 def main():
-    pass    # TODO
+    Interpret()
 
 
 if __name__ == "__main__":

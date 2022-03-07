@@ -1,10 +1,11 @@
 """Main program information"""
 
-from typing import List, Dict, Union
-import utils
-from ret_codes import RetCodes
-import instructions
-import types_
+from typing import List, Dict, Union, TextIO
+
+from interpret_ext.utils import Utils
+from interpret_ext.ret_codes import RetCodes
+from interpret_ext.instructions import *
+from interpret_ext.types_ import *
 
 
 class Program:
@@ -19,15 +20,16 @@ class Program:
     @staticmethod
     def get_instance():
         if Program.__instance is None:
-            Program()
+            Program(None)
         return Program.__instance
 
-    def __init__(self):
+    def __init__(self, input_):
         if Program.__instance is None:
+            self._input: TextIO = input_
             self.global_frame: Dict = {}
             self.local_frame: List = []
             self.tmp_frame: Union[Dict, None] = None
-            self.data_stack: List[types_.Types] = []
+            self.data_stack: List[Types] = []
             self.call_stack: List[int] = []
 
             self._bare_instructions: List = []
@@ -38,7 +40,7 @@ class Program:
 
     def process_instructions(self, insts):
         for inst in insts:
-            if isinstance(inst, instructions.Label):
+            if isinstance(inst, Label):
                 self._labels[inst.eval()] = len(self._bare_instructions)
             else:
                 self._bare_instructions.append(inst)
@@ -56,11 +58,11 @@ class Program:
             return var.value in self.get_global_frame
         elif var.get_frame == "LF":
             if len(self.get_local_frame) == 0:
-                utils.Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
+                Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
             return var.value in self.get_local_frame[-1]
         elif var.get_frame == "TF":
             if self.get_tmp_frame is None:
-                utils.Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
+                Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
             return var.value in self.get_tmp_frame
 
     def var_init(self, var):
@@ -73,7 +75,7 @@ class Program:
 
     def var_set(self, var, value):
         if not self.is_exist(var):
-            utils.Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
+            Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
         if var.get_frame == "GF":
             self.global_frame[var.value] = value
         elif var.get_frame == "LF":
@@ -82,11 +84,11 @@ class Program:
             self.tmp_frame[var.value] = value
 
     def get_value(self, var):
-        if isinstance(var, types_.Constant):
+        if isinstance(var, Constant):
             return var
         else:
             if not self.is_exist(var):
-                utils.Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
+                Utils.error("undefined variable", RetCodes.VAR_NOT_EXIST_ERR)
             var_value = None
             if var.get_frame == "GF":
                 var_value = self.get_global_frame[var.value]
@@ -95,7 +97,7 @@ class Program:
             elif var.get_frame == "TF":
                 var_value = self.get_tmp_frame[var.value]
             if var_value is None:
-                utils.Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
+                Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
             return var_value
 
     def get_stats(self):
@@ -106,6 +108,10 @@ class Program:
                f"Call stack: {self.get_call_stack}" \
                f"Labels: {self.get_labels}" \
                f"Program pointer: {self.program_ptr}"
+
+    @property
+    def get_input(self):
+        return self._input
 
     @property
     def get_labels(self):

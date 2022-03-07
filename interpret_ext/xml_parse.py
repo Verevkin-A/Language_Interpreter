@@ -4,11 +4,10 @@ import xml.etree.ElementTree as ET
 from typing import TextIO, Dict, List
 from re import match
 
-from ret_codes import RetCodes
-from utils import Utils
-from instructions import *
-from types_ import *
-from program import Program
+from interpret_ext.ret_codes import RetCodes
+from interpret_ext.utils import Utils
+from interpret_ext.instructions import *
+from interpret_ext.types_ import *
 
 
 class XMLParse:
