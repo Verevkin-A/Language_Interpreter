@@ -26,4 +26,9 @@ class Interpret:
 
 
 Interpret()
-# print("fuckyou" < "guckmeee")
+# import re
+# value = r"string\032haha\032lol"
+#
+# escapePattern = re.compile(r'(\\[0-9]{3})', re.UNICODE)
+# string = re.sub(escapePattern, lambda x: chr(int(x.group()[1:])), value)
+# print(string)

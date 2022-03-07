@@ -5,7 +5,7 @@ class Types:
     def __init__(self, value, order: int = -1):
         self.order = order
         self.value = value
-        self.program: Program = Program.get_instance()
+        # self.program: Program = Program.get_instance()
 
     def __eq__(self, other):
         return self.order == other.order
