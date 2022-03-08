@@ -51,7 +51,10 @@ class XMLParse:
 
             arguments: List = self.sort_arguments(inst)
             instr_cls: str = inst.attrib["opcode"].title()
-            instruction = eval(instr_cls)(arguments)
+            try:
+                instruction = eval(instr_cls)(arguments)
+            except NameError:
+                Utils.error(f"unknown opcode (inst.attrib['opcode'])", RetCodes.XML_STRUCT_ERR)
             if instructions_data.get(inst_order) is None:
                 instructions_data[inst_order] = instruction
             else:

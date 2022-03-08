@@ -41,7 +41,10 @@ class Program:
     def process_instructions(self, insts):
         for inst in insts:
             if isinstance(inst, instructions.Label):
-                self._labels[inst.eval()] = len(self._bare_instructions)
+                if self._labels.get(inst.eval()) is None:
+                    self._labels[inst.eval()] = len(self._bare_instructions) - 1
+                else:
+                    Utils.error(f"label already exist ({inst.eval})", RetCodes.SEMANTIC_ERR)
             else:
                 self._bare_instructions.append(inst)
 
