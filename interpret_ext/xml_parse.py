@@ -61,7 +61,7 @@ class XMLParse:
                 Utils.error(f"instruction order key already exist ({inst_order})", RetCodes.XML_STRUCT_ERR)
 
         sorted_instructions = dict(sorted(instructions_data.items()))     # sort instructions by their order
-        return [value for value in instructions_data.values()]  # return only instructions
+        return [value for value in sorted_instructions.values()]  # return only instructions
 
     def check_header(self) -> None:
         """Check program header for correct name and attributes"""
