@@ -7,7 +7,7 @@ from re import match
 from interpret_ext.ret_codes import RetCodes
 from interpret_ext.utils import Utils
 from interpret_ext.instructions import *
-from interpret_ext.types_ import *
+import interpret_ext.types_
 
 
 class XMLParse:
@@ -51,10 +51,8 @@ class XMLParse:
 
             arguments: List = self.sort_arguments(inst)
             instr_cls: str = inst.attrib["opcode"].title()
-            instruction = eval(instr_cls)(arguments, instr_cls)
-            try:
-                instructions_data[inst_order]
-            except KeyError:
+            instruction = eval(instr_cls)(arguments)
+            if instructions_data.get(inst_order) is None:
                 instructions_data[inst_order] = instruction
             else:
                 Utils.error(f"instruction order key already exist ({inst_order})", RetCodes.XML_STRUCT_ERR)
@@ -107,13 +105,13 @@ class XMLParse:
     @staticmethod
     def assign_type(order: int, type_: str, value: str) -> Types:
         if type_ == "int" or type_ == "bool" or type_ == "string":
-            return Constant(type_, value, order=order)
+            return interpret_ext.types_.Constant(type_, value, order=order)
         elif type_ == "var":
-            return Variable(value, order=order)
+            return interpret_ext.types_.Variable(value, order=order)
         elif type_ == "label":
-            return Label(value, order=order)
+            return interpret_ext.types_.Label(value, order=order)
         elif type_ == "type":
-            return Type(value, order=order)
+            return interpret_ext.types_.Type(value, order=order)
 
     @property
     def get_instructions(self):

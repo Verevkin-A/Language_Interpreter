@@ -4,8 +4,8 @@ from typing import List, Dict, Union, TextIO
 
 from interpret_ext.utils import Utils
 from interpret_ext.ret_codes import RetCodes
-from interpret_ext.instructions import *
-from interpret_ext.types_ import *
+import interpret_ext.instructions as instructions
+import interpret_ext.types_ as types
 
 
 class Program:
@@ -29,7 +29,7 @@ class Program:
             self.global_frame: Dict = {}
             self.local_frame: List = []
             self.tmp_frame: Union[Dict, None] = None
-            self.data_stack: List[Types] = []
+            self.data_stack: List[types.Types] = []
             self.call_stack: List[int] = []
 
             self._bare_instructions: List = []
@@ -40,7 +40,7 @@ class Program:
 
     def process_instructions(self, insts):
         for inst in insts:
-            if isinstance(inst, Label):
+            if isinstance(inst, instructions.Label):
                 self._labels[inst.eval()] = len(self._bare_instructions)
             else:
                 self._bare_instructions.append(inst)
@@ -84,7 +84,7 @@ class Program:
             self.tmp_frame[var.value] = value
 
     def get_value(self, var):
-        if isinstance(var, Constant):
+        if isinstance(var, types.Constant):
             return var
         else:
             if not self.is_exist(var):

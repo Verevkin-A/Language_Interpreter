@@ -18,10 +18,8 @@ class InstInterface(ABC):
 
 
 class Instruction:
-    def __init__(self, arguments: List, name: str):
-        self.name = name
+    def __init__(self, arguments: List):
         self.arguments: List = arguments
-
         self.program: Program = Program.get_instance()
 
 
@@ -75,7 +73,7 @@ class Jump(Instruction):
     def eval(self):
         if self.arguments[0].get_value not in self.program.get_labels.keys():
             Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
-        self.program.program_ptr(self.program.get_labels[self.arguments[0].get_value])  # set pointer on jumped label
+        self.program.program_ptr = self.program.get_labels[self.arguments[0].get_value]  # set pointer on jumped label
 
 
 class Call(Jump):
