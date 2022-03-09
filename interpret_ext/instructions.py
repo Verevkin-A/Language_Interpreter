@@ -145,7 +145,7 @@ class Strlen(Instruction):
 
 class Type(Instruction):
     def eval(self):
-        const = self.program.get_value(self.arguments[1])
+        const = self.program.get_value(self.arguments[1], True)     # will return None in case of uninitialized variable
         if const is None:
             self.program.var_set(self.arguments[0], Constant("string", ""))
         else:
@@ -175,7 +175,7 @@ class Read(Instruction):
             self.program.var_set(self.arguments[0], new_boolean)
         elif type_ == "int":
             try:
-                self.program.var_set(self.arguments[0], print(int(read, 0)))
+                self.program.var_set(self.arguments[0], Constant("int", str(int(read, 0))))
             except ValueError:
                 self.program.var_set(self.arguments[0], Constant("nil", "nil"))
         elif type_ == "string":
@@ -245,7 +245,7 @@ class Eq(Instruction):
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
-        answer: bool = Utils.compare_consts(const1, const2, operation=lambda x, y: x == y)
+        answer: bool = Utils.compare_consts(const1, const2, operation=lambda x, y: x == y, eq=True)
         self.program.var_set(self.arguments[0], Constant("bool", str(answer).lower()))
 
 

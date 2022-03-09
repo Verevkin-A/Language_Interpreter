@@ -54,7 +54,7 @@ class XMLParse:
             try:
                 instruction = eval(instr_cls)(arguments)
             except NameError:
-                Utils.error(f"unknown opcode (inst.attrib['opcode'])", RetCodes.XML_STRUCT_ERR)
+                Utils.error(f"unknown opcode ({inst.attrib['opcode']})", RetCodes.XML_STRUCT_ERR)
             if instructions_data.get(inst_order) is None:
                 instructions_data[inst_order] = instruction
             else:
@@ -68,7 +68,7 @@ class XMLParse:
         if self._xml_root.tag != "program":
             Utils.error(f"invalid root name ({self._xml_root.tag})", RetCodes.XML_STRUCT_ERR)
         try:
-            if self._xml_root.attrib["language"].lower() != "ippcode22":
+            if self._xml_root.attrib["language"].lower() != "ippcode21":
                 Utils.error(f"only IPPcode22 language in root supported (given: {self._xml_root.attrib['language']})",
                             RetCodes.XML_STRUCT_ERR)
             for attr in self._xml_root.attrib.keys():
@@ -107,7 +107,7 @@ class XMLParse:
 
     @staticmethod
     def assign_type(order: int, type_: str, value: str) -> Types:
-        if type_ == "int" or type_ == "bool" or type_ == "string":
+        if type_ == "int" or type_ == "bool" or type_ == "string" or type_ == "nil":
             return interpret_ext.types_.Constant(type_, value, order=order)
         elif type_ == "var":
             return interpret_ext.types_.Variable(value, order=order)

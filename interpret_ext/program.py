@@ -86,7 +86,7 @@ class Program:
         elif var.get_frame == "TF":
             self.tmp_frame[var.value] = value
 
-    def get_value(self, var):
+    def get_value(self, var, type_=False):
         if isinstance(var, types.Constant):
             return var
         else:
@@ -99,7 +99,7 @@ class Program:
                 var_value = self.get_local_frame[-1][var.value]
             elif var.get_frame == "TF":
                 var_value = self.get_tmp_frame[var.value]
-            if var_value is None:
+            if var_value is None and type_ is False:
                 Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
             return var_value
 

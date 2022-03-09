@@ -19,7 +19,10 @@ class Utils:
         exit(ret_code)
 
     @staticmethod
-    def compare_consts(const1: Constant, const2: Constant, operation: Callable) -> bool:
+    def compare_consts(const1: Constant, const2: Constant, operation: Callable, eq: bool = False) -> bool:
+        if eq and (const1.get_type == "nil" or const2.get_type == "nil"):   # check for allowed equal with nil type
+            return operation(const1.get_type, const2.get_type)
+
         allowed_types =["int", "bool", "string"]
         if const1.get_type not in allowed_types or const2.get_type not in allowed_types or \
                 const1.get_type != const2.get_type:
