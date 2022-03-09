@@ -4,8 +4,12 @@
  * @author Aleksandr Verevkin (xverev00), VUT FIT IPP 2021/2022
  */
 
+// setting to show errors on stderr
 ini_set('display_errors', 'stderr');
-// class with utilities
+
+/**
+ * Class with utilities
+ */
 final class Utils
 {
     // errors
@@ -13,13 +17,27 @@ final class Utils
     const HEADER_ERR = 21;
     const OPCODE_ERR = 22;
     const LEX_SYN_ERR = 23;
-    // method for print error message and exit program with given return code
+
+    /**
+     * Print error message and exit program with given return code
+     *
+     * @param int $err error code
+     * @param string $msg error message
+     */
     function error(int $err, string $msg) {
         fwrite(STDERR, "Error: " . $msg . "\n");
         exit($err);
     }
-    // method that check if symbol is variable or type representation
-    function check_symb(string $operand, DOMDocument $xml, int $arg_num) {
+
+    /**
+     * Check if symbol is variable or constant representation
+     *
+     * @param string $operand symbol to be checked
+     * @param DOMDocument $xml output XML document
+     * @param int $arg_num number of argument
+     * @return DOMElement new argument element
+     */
+    function check_symb(string $operand, DOMDocument $xml, int $arg_num) : DOMElement {
         $type = explode("@", $operand, 2);
         if ($type[0] == "GF" || $type[0] == "LF" || $type[0] == "TF") {
             $arg = $xml->createElement("arg$arg_num", htmlspecialchars($operand));
@@ -29,6 +47,33 @@ final class Utils
             $arg->setAttribute("type", $type[0]);
         }
         return $arg;
+    }
+
+    /**
+     * Check if given program arguments are supported
+     *
+     * @param int $argc count of given arguments
+     * @param array $argv array of given arguments
+     */
+    function check_args(int $argc, array $argv) {
+        switch ($argc) {
+            // program don't have additional arguments
+            case 1:
+                break;
+            // program has 1 argument
+            case 2:
+                // check if it's --help argument
+                if ($argv[1] == "--help") {
+                    echo HELP;
+                    exit;
+                    // else return error
+                } else {
+                    $this->error(UTILS::PARAM_ERR, "unknown parameter");
+                }
+            // program has more than 1 additional arguments -> error
+            default:
+                $this->error(UTILS::PARAM_ERR, "wrong amount of parameters");
+        }
     }
 }
 // help message
@@ -60,25 +105,14 @@ const IDENTIFIER = "~^" . IDENTIFIER_SOLO . "$~";
 const VARIABLE_SOLO = "(" . FRAMES . "@" . IDENTIFIER_SOLO . ")";
 const VARIABLE = "~^" . VARIABLE_SOLO . "$~";
 const SYMBOL = "~^(" . CONSTANT . "|" . VARIABLE_SOLO . ")$~";
+// create Utils instance for latter use
 $utils = new Utils();
-# check for arguments
-switch ($argc) {
-    case 1:
-        break;
-    case 2:
-        if ($argv[1] == "--help") {
-            echo HELP;
-            exit;
-        } else {
-            $utils->error(UTILS::PARAM_ERR, "unknown parameter");
-        }
-    default:
-        $utils->error(UTILS::PARAM_ERR, "wrong count of parameters");
-}
+// check arguments
+$utils->check_args($argc, $argv);
 // create output xml document
 $xml = new DOMDocument("1.0", "UTF-8");
 $xml->formatOutput = true;
-
+// create header element
 $xml_program = $xml->createElement("program");
 $xml_program = $xml->appendChild($xml_program);
 $xml_lang = $xml->createAttribute("language");
@@ -89,6 +123,7 @@ $ln = 0;
 $header = false;
 // go through input file, line by line
 while ($line = fgets(STDIN)) {
+    # cut line from possible comments
     $line = trim(explode("#", $line)[0]);
     if ($line == "") {
         continue;
@@ -117,14 +152,14 @@ while ($line = fgets(STDIN)) {
         case "RETURN":
         case "BREAK":
             if (count($line_args) != 1) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             break;
         // <var>
         case "DEFVAR":
         case "POPS":
             if (count($line_args) != 2) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
@@ -138,7 +173,7 @@ while ($line = fgets(STDIN)) {
         case "LABEL":
         case "JUMP":
             if (count($line_args) != 2) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(IDENTIFIER, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "label identifier");
@@ -153,7 +188,7 @@ while ($line = fgets(STDIN)) {
         case "EXIT":
         case "DPRINT":
             if (count($line_args) != 2) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(SYMBOL, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "symbol identifier");
@@ -168,7 +203,7 @@ while ($line = fgets(STDIN)) {
         case "TYPE":
         case "NOT":
             if (count($line_args) != 3) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
@@ -185,7 +220,7 @@ while ($line = fgets(STDIN)) {
         // <var> <type>
         case "READ":
             if (count($line_args) != 3) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
@@ -215,7 +250,7 @@ while ($line = fgets(STDIN)) {
         case "GETCHAR":
         case "SETCHAR":
             if (count($line_args) != 4) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(VARIABLE, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "variable identifier");
@@ -238,7 +273,7 @@ while ($line = fgets(STDIN)) {
         case "JUMPIFEQ":
         case "JUMPIFNEQ":
             if (count($line_args) != 4) {
-                $utils->error(UTILS::LEX_SYN_ERR, "wrong count of operands");
+                $utils->error(UTILS::LEX_SYN_ERR, "wrong amount of operands");
             }
             if (!preg_match(IDENTIFIER, $line_args[1])) {
                 $utils->error(UTILS::LEX_SYN_ERR, "label identifier");
