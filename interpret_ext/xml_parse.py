@@ -68,7 +68,7 @@ class XMLParse:
         if self._xml_root.tag != "program":
             Utils.error(f"invalid root name ({self._xml_root.tag})", RetCodes.XML_STRUCT_ERR)
         try:
-            if self._xml_root.attrib["language"].lower() != "ippcode21":
+            if self._xml_root.attrib["language"].lower() != "ippcode22":
                 Utils.error(f"only IPPcode22 language in root supported (given: {self._xml_root.attrib['language']})",
                             RetCodes.XML_STRUCT_ERR)
             for attr in self._xml_root.attrib.keys():
