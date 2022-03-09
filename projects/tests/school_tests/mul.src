@@ -1,4 +1,0 @@
-.ippcode18
-defvar GF@prom
-mul GF@prom int@2 int@4
-write GF@prom

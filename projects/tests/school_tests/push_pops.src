@@ -1,5 +1,0 @@
-.ippcode18
-defvar GF@prom
-pushs bool@true
-pops GF@prom
-write GF@prom

@@ -1,4 +1,0 @@
-.ippcode18
-defvar GF@prom
-stri2int GF@prom string@Ahoj int@0
-write GF@prom

@@ -1,5 +1,0 @@
-.ippcode18
-#
-# alahu
-MOVE GF@counter string@ # Inicializace proměnné na prázdný řetězec
-DPRINT string@&

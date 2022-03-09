@@ -1,3 +1,0 @@
-.ippcode18
-defvar GF@prom
-getchar GF@prom string@ahoj int@4

@@ -1,4 +1,0 @@
-.ippcode18
-defvar GF@prom
-read GF@prom int
-write GF@prom

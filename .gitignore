@@ -1,6 +1,5 @@
 # big chunk of tests from the year before
 ipp-2020-tests/
-projects/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

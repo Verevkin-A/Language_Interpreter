@@ -1,8 +1,0 @@
-.IPPcode18
-JUMP $$MAIN
-LABEL $$MAIN
-CREATEFRAME
-DEFVAR TF@a
-MOVE TF@a string@
-MOVE TF@a string@/'komentar'/\032'komentar
-WRITE TF@a

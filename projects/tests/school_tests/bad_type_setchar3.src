@@ -1,4 +1,0 @@
-.ippcode18
-defvar GF@prom
-move GF@prom string@ipp
-setchar GF@prom int@1 int@2
