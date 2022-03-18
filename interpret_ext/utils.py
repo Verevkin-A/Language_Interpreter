@@ -20,6 +20,14 @@ class Utils:
 
     @staticmethod
     def compare_consts(const1: Constant, const2: Constant, operation: Callable, eq: bool = False) -> bool:
+        """Comparison operations util
+
+        :param const1: first operator
+        :param const2: second operator
+        :param operation: callable operation
+        :param eq: if operation is '=='
+        :return: boolean comparison result
+        """
         if eq and (const1.get_type == "nil" or const2.get_type == "nil"):   # check for allowed equal with nil type
             return operation(const1.get_type, const2.get_type)
 

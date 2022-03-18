@@ -38,7 +38,7 @@ class Program:
 
             Program.__instance = self
 
-    def process_instructions(self, insts):
+    def process_instructions(self, insts: List):
         for inst in insts:
             if isinstance(inst, instructions.Label):
                 if self._labels.get(inst.eval()) is None:

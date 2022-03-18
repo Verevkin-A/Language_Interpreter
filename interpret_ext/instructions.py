@@ -1,9 +1,10 @@
 """Interpret available instructions"""
+
 from typing import List
 from abc import ABC, abstractmethod
 from sys import stderr, stdin
 
-from interpret_ext.types_ import *
+from interpret_ext.types_ import Constant
 from interpret_ext.program import Program
 from interpret_ext.utils import Utils
 from interpret_ext.ret_codes import RetCodes

@@ -1,4 +1,4 @@
-"""Class for arguments handling"""
+"""Program arguments handling module"""
 
 from argparse import ArgumentParser, RawTextHelpFormatter
 from sys import stdin, argv
@@ -15,7 +15,6 @@ class ArgsParse:
     parser -- instance of program ArgumentParser
     args -- given parameters
     """
-
     _PROGRAM = "interpret.py"
     _DESCRIPTION = "The script reads an XML representation of the program,\n" \
                    "interprets it using command line parameters and generates output."

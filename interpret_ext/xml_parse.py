@@ -7,7 +7,7 @@ from re import match
 from interpret_ext.ret_codes import RetCodes
 from interpret_ext.utils import Utils
 from interpret_ext.instructions import *
-import interpret_ext.types_
+import interpret_ext.types_ as types
 
 
 class XMLParse:
@@ -15,6 +15,7 @@ class XMLParse:
     
     # TODO
     """
+
     _ROOT_ATTRIBUTES: List = ["language", "name", "description"]
 
     def __init__(self, xml_source: TextIO):
@@ -33,7 +34,10 @@ class XMLParse:
         self._instructions = self.sort_xml()
 
     def sort_xml(self) -> List:
-        """Sort XML source file into dictionary with instructions"""
+        """Sort XML source file into dictionary with instructions
+
+        :return: list with instructions
+        """
         instructions_data: Dict[int, Instruction] = {}
         for inst in self._xml_root:
             if inst.tag != "instruction":
@@ -83,7 +87,7 @@ class XMLParse:
         :param inst: instruction
         :return: list with arguments
         """
-        instruction_args: List = [Types]
+        instruction_args: List = [types.Types]
         for arg in inst:
             if not match(r"^(arg[123])$", arg.tag):
                 Utils.error("unknown argument name", RetCodes.XML_STRUCT_ERR)
@@ -106,17 +110,17 @@ class XMLParse:
         return instruction_args
 
     @staticmethod
-    def assign_type(order: int, type_: str, value: str) -> Types:
+    def assign_type(order: int, type_: str, value: str) -> types.Types:
         if type_ == "int" or type_ == "bool" or type_ == "string" or type_ == "nil":
-            return interpret_ext.types_.Constant(type_, value, order=order)
+            return types.Constant(type_, value, order=order)
         elif type_ == "var":
-            return interpret_ext.types_.Variable(value, order=order)
+            return types.Variable(value, order=order)
         elif type_ == "label":
-            return interpret_ext.types_.Label(value, order=order)
+            return types.Label(value, order=order)
         elif type_ == "type":
-            return interpret_ext.types_.Type(value, order=order)
+            return types.Type(value, order=order)
 
     @property
-    def get_instructions(self):
+    def get_instructions(self) -> List:
         """Instructions getter method"""
         return self._instructions
