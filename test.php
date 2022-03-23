@@ -10,5 +10,5 @@ require_once "test_ext/TestUtils.php";
 // setting to show errors on stderr
 ini_set('display_errors', 'stderr');
 
-$args_parser = new ParseArgs();
+$args_parser = new ParseArgs($argc);
 
