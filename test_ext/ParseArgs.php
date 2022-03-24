@@ -35,7 +35,10 @@ final class ParseArgs
               --parse-only      only parse php script will be tested
               --int-only        only interpret python script will be tested
               --jexampath       path to directory with jexamxml.jar
-              --noclean         script help files won't be deleted\n
+              --noclean         script help files won't be deleted
+              
+            int-only parameter can't be combined with parse parameters and
+            parse-only parameter can't be combined with interpret parameters.\n
     EOD;
 
     protected int $argc;

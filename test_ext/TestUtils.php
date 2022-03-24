@@ -10,8 +10,8 @@
 final class TestUtils
 {
     // errors
-    const PARAM_ERR = 10;
-    const BAD_DIR = 41;
+    public const PARAM_ERR = 10;
+    public const BAD_DIR = 41;
 
     /**
      * Print error message and exit program with given return code
