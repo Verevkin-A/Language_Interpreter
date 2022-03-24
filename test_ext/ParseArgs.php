@@ -1,4 +1,10 @@
 <?php
+/**
+ * IPPcode22 program parameters parsing
+ * @author Aleksandr Verevkin (xverev00), VUT FIT IPP 2021/2022
+ */
+
+require_once "TestUtils.php";
 
 final class ParseArgs
 {
@@ -45,10 +51,17 @@ final class ParseArgs
             "parse-only", "int-only", "jexampath:", "noclean");
         $this->args = getopt("", $long_opt);
         $this->check_params();
+        $this->set_params();
+    }
+
+    private function process_path(string $path): string {
+        if (!($processed_path = realpath($path))) {
+            $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist (" . $path . ")");
+        }
+        return $processed_path;
     }
 
     protected function check_help() {
-//        var_dump($this->args);
         if (key_exists("help", $this->args)) {
             if (count($this->args) == 1) {
                 echo $this::HELP;
@@ -59,16 +72,6 @@ final class ParseArgs
         }
     }
 
-    private function process_path(string $path) {
-        if (!($path = realpath($path))) {
-            $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist");
-        }
-//        if (!file_exists($path)) {
-//            $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist");
-//        }
-        return $path;
-    }
-
     protected function check_params() {
         // check for help parameter
         $this->check_help();
@@ -76,21 +79,37 @@ final class ParseArgs
         if (count($this->args) != $this->argc - 1) {
             $this->utils->error($this->utils::PARAM_ERR, "unknown parameter");
         }
+        // check for forbidden combinations
+        if (key_exists("parse-only", $this->args) &&
+            (key_exists("int-only", $this->args) || key_exists("int-script", $this->args))) {
+            $this->utils->error($this->utils::PARAM_ERR, "'parse-only' can't be combined with interpret parameters");
+        }
+        if (key_exists("int-only", $this->args) &&
+            (key_exists("parse-only", $this->args) || key_exists("parse-script", $this->args))) {
+            $this->utils->error($this->utils::PARAM_ERR, "'int-only' can't be combined with parse parameters");
+        }
+    }
+
+    public function set_params() {
         // set boolean parameters
         $this->recursive = key_exists("recursive", $this->args);
         $this->parse_only = key_exists("parse-only", $this->args);
         $this->int_only = key_exists("int-only", $this->args);
         $this->noclean = key_exists("noclean", $this->args);
-
+        // set path parameters
         if(key_exists("directory", $this->args)) {
             $this->dir = $this->process_path($this->args["directory"]);
         }
-        if(key_exists("parse-only", $this->args)) {
-            $this->parse = $this->process_path($this->args["parse-only"]);
+        if(key_exists("parse-script", $this->args)) {
+            $this->parse = $this->process_path($this->args["parse-script"]);
         }
-        if(key_exists("int-only", $this->args)) {
-            $this->interpret = $this->process_path($this->args["int-only"]);
+        if(key_exists("int-script", $this->args)) {
+            $this->interpret = $this->process_path($this->args["int-script"]);
         }
-        # TODO if exist jexam
+        if(key_exists("jexampath", $this->args)) {
+            $path = $this->process_path($this->args["jexampath"]);
+            $this->jexam = $this->process_path($path . "/jexamxml.jar");
+            $this->options = $this->process_path($path . "/options");
+        }
     }
 }

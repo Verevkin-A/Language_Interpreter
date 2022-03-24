@@ -1,5 +1,12 @@
 <?php
+/**
+ * IPPcode22 utilities
+ * @author Aleksandr Verevkin (xverev00), VUT FIT IPP 2021/2022
+ */
 
+/**
+ * Class with test utilities
+ */
 final class TestUtils
 {
     // errors
