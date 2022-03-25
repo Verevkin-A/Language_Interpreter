@@ -47,6 +47,9 @@ class Variable(Types):
 class Constant(Types):
     """Constant argument"""
     def __init__(self, type_: str, value: str, order: int = -1):
+        # check if string is empty
+        if value is None and type_ == "string":
+            value = ""
         super().__init__(value, order)
         self.type_ = type_
 

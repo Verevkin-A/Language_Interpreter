@@ -15,6 +15,7 @@ final class ParseArgs
     public string $interpret = "interpret.py";
     public bool $parse_only = false;
     public bool $int_only = false;
+    public bool $both = false;
     public string $jexam = "/pub/courses/ipp/jexamxml/jexamxml.jar";
     public string $options = "/pub/courses/ipp/jexamxml/options";
     public bool $noclean = false;
@@ -98,6 +99,7 @@ final class ParseArgs
         $this->recursive = key_exists("recursive", $this->args);
         $this->parse_only = key_exists("parse-only", $this->args);
         $this->int_only = key_exists("int-only", $this->args);
+        $this->both = $this->parse_only == false && $this->int_only == false;
         $this->noclean = key_exists("noclean", $this->args);
         // set path parameters
         if(key_exists("directory", $this->args)) {

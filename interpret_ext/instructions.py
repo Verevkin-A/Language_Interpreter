@@ -72,13 +72,13 @@ class Pops(Instruction):
 
 class Jump(Instruction):
     def eval(self):
-        if self.arguments[0].get_value not in self.program.get_labels.keys():
-            Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
         self.program.program_ptr = self.program.get_labels[self.arguments[0].get_value]  # set pointer on jumped label
 
 
 class Call(Jump):
     def eval(self):
+        if self.arguments[0].get_value not in self.program.get_labels.keys():
+            Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
         self.program.call_stack.append(self.program.program_ptr)
         Jump.eval(self)
 
@@ -274,7 +274,7 @@ class Or(Instruction):
         self.program.var_set(self.arguments[0], Constant("bool", answer))
 
 
-class Stri2int(Instruction):
+class Stri2Int(Instruction):
     def eval(self):
         string = self.program.get_value(self.arguments[1])
         position = self.program.get_value(self.arguments[2])
@@ -296,7 +296,7 @@ class Concat(Instruction):
         const2 = self.program.get_value(self.arguments[2])
         if const1.get_type != "string" or const2.get_type != "string":
             Utils.error("'CONCAT' can be applied only on string types", RetCodes.OPP_TYPE_ERR)
-        self.program.var_set(self.arguments[0], const1.get_value + const2.get_value)
+        self.program.var_set(self.arguments[0], Constant("string", const1.get_value + const2.get_value))
 
 
 class Setchar(Instruction):
@@ -306,11 +306,11 @@ class Setchar(Instruction):
         change = self.program.get_value(self.arguments[2])
         if string.get_type != "string" or position.get_type != "int" or change.get_type != "string":
             Utils.error("bad operand type", RetCodes.OPP_TYPE_ERR)
-        position_int = int(position, 0)
+        position_int = int(position.get_value, 0)
         try:
-            if position_int < 0:
+            if position_int < 0 or position_int >= len(string.get_value):
                 raise IndexError
-            new_string = string[:position_int] + change.get_value[0] + string[position_int + 1:]
+            new_string = string.get_value[:position_int] + change.get_value[0] + string.get_value[position_int + 1:]
             self.program.var_set(self.arguments[0], Constant("string", new_string))
         except IndexError:
             Utils.error("index out of range", RetCodes.STRING_ERR)
@@ -333,6 +333,8 @@ class Getchar(Instruction):
 
 class Jumpifeq(Jump):
     def eval(self):
+        if self.arguments[0].get_value not in self.program.get_labels.keys():
+            Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
         if const1.get_type == const2.get_type:
@@ -346,6 +348,8 @@ class Jumpifeq(Jump):
 
 class Jumpifneq(Jump):
     def eval(self):
+        if self.arguments[0].get_value not in self.program.get_labels.keys():
+            Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
         if const1.get_type == const2.get_type:

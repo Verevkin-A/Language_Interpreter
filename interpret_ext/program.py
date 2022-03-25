@@ -49,6 +49,10 @@ class Program:
                 self._bare_instructions.append(inst)
 
     def eval_program(self):
+        # check if file without instructions
+        if len(self._bare_instructions) == 0:
+            return
+        # loop through the instructions
         while True:
             instruction = self._bare_instructions[self._program_ptr]
             instruction.eval()

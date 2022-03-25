@@ -19,15 +19,16 @@ $tests->find_tests($args_parser->dir);
 // execute tests
 $tests_results = [];
 foreach ($tests->tests as $name => $test) {
+    // filter test and add absent files
     if (!$test->set_test()) {
         continue;
     }
-    $tests_results[$name] = $test->run_parser_test();
-
+    // run test
+    $tests_results[$name] = $test->run_test();
+    //clean temporary files
     if (!$args_parser->noclean) {
-        $tests_results[$name]->clean();
+        $tests_results[$name]->clean($args_parser->parse_only);
     }
-//    print($tests_results[$name]->returned_code."/".$tests_results[$name]->expected_code."\n");
+//    print($tests_results[$name]->returned_code == $tests_results[$name]->expected_code ? "" : "$name|".$tests_results[$name]->returned_code."\n");
 }
-//var_dump($tests_results);
 
