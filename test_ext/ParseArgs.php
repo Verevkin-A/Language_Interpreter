@@ -59,7 +59,7 @@ final class ParseArgs
 
     private function process_path(string $path): string {
         if (!($processed_path = realpath($path))) {
-            $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist (" . $path . ")");
+            $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist ($path)");
         }
         return $processed_path;
     }

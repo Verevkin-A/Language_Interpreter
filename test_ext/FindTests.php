@@ -24,12 +24,12 @@ final class FindTests
             if ($file == "." or $file == "..") {
                 continue;
             }
-            $full_path = $dir . "/" . $file;
+            $full_path = "$dir/$file";
             // check if file is directory
             if (is_dir($full_path)) {
                 // check if recursive argument was set
                 if ($this->args->recursive) {
-                    $this->find_tests($full_path);
+                    $this->find_tests($full_path);  // recursive search of tests
                 }
                 continue;
             }
@@ -42,7 +42,7 @@ final class FindTests
                     if (key_exists($path_parts["filename"], $this->tests)) {
                         $test_item = $this->tests[$path_parts["filename"]];
                     } else {
-                        $test_item = new TestItem($path_parts["filename"]);
+                        $test_item = new TestItem($path_parts["filename"], $this->args);
                         $this->tests[$path_parts["filename"]] = $test_item;
                     }
                     // save test file into his test case
