@@ -165,14 +165,14 @@ final class CreateHTML
         $name->appendChild($this->dom->createTextNode("Path: $result->test_path"));
         // other columns
         $test_res = $this->dom->createElement("td", $result_entry);
-        $test_res->setAttribute("style",$this::CENTER_ALIGN);
+        $test_res->setAttribute("style", $this::CENTER_ALIGN);
         $expected = $this->dom->createElement("td", "$result->expected_code");
-        $expected->setAttribute("style",$this::CENTER_ALIGN);
+        $expected->setAttribute("style", $this::CENTER_ALIGN);
         $returned = $this->dom->createElement("td", "$result->returned_code");
-        $returned->setAttribute("style",$this::CENTER_ALIGN);
-        $error = $this->dom->createElement("td", $result->stderr ?: "-");
+        $returned->setAttribute("style", $this::CENTER_ALIGN);
+        $error = $this->dom->createElement("td", $result->stderr);
         $output = $this->dom->createElement("td", $output_entry);
-        $output->setAttribute("style",$this::CENTER_ALIGN);
+        $output->setAttribute("style", $this::CENTER_ALIGN);
         // connect all td elements to tr element
         $row->appendChild($name);
         $row->appendChild($test_res);

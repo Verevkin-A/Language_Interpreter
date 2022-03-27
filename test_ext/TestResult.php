@@ -14,7 +14,7 @@ final class TestResult
     public string $int_stdout_path;
     public string $stderr_path;
     // stderr output
-    public string $stderr;
+    public string $stderr = "-";
     // test information
     public string $test_name;
     public string $test_path;

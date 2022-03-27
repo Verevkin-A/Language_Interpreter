@@ -172,7 +172,7 @@ class Read(Instruction):
         if read == "":
             self.program.var_set(self.arguments[0], Constant("nil", "nil"))
         elif type_ == "bool":
-            new_boolean = Constant("bool", "true" if read == "true" else "false")
+            new_boolean = Constant("bool", "true" if read.lower() == "true" else "false")
             self.program.var_set(self.arguments[0], new_boolean)
         elif type_ == "int":
             try:

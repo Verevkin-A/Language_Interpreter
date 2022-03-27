@@ -111,7 +111,9 @@ final class ParseArgs
             $this->utils->error($this->utils::PARAM_ERR, "'parse-only' can't be combined with interpret parameters");
         }
         if (key_exists("int-only", $this->args) &&
-            (key_exists("parse-only", $this->args) || key_exists("parse-script", $this->args))) {
+            ( key_exists("parse-only", $this->args) ||
+              key_exists("parse-script", $this->args) ||
+              key_exists("jexampath", $this->args)) ) {
             $this->utils->error($this->utils::PARAM_ERR, "'int-only' can't be combined with parse parameters");
         }
     }

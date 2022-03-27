@@ -11,7 +11,7 @@ require_once "TestResult.php";
  */
 final class TestItem
 {
-    protected string $php = "php";  # TODO php8.1
+    protected string $php = "php8.1";
     protected string $python = "python3.8";
     // test case info and paths to files
     public string $name;
