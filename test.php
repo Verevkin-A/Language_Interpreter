@@ -7,6 +7,7 @@
 require_once "test_ext/ParseArgs.php";
 require_once "test_ext/TestUtils.php";
 require_once "test_ext/FindTests.php";
+require_once "test_ext/CreateHTML.php";
 
 // setting to show errors on stderr
 ini_set('display_errors', 'stderr');
@@ -29,6 +30,7 @@ foreach ($tests->tests as $name => $test) {
     if (!$args_parser->noclean) {
         $tests_results[$name]->clean($args_parser->parse_only);
     }
-//    print($tests_results[$name]->returned_code == $tests_results[$name]->expected_code ? "" : "$name|".$tests_results[$name]->returned_code."\n");
 }
-
+// create html representation of test results
+$html = new CreateHTML();
+echo $html->get_html();
