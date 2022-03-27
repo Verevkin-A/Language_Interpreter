@@ -13,17 +13,23 @@ final class TestResult
     // outputs
     public string $stdout;
     public string $stderr;
-
+    // test information
+    public string $test_name;
+    public string $test_path;
     public int $expected_code;
     public ?int $returned_code;
     public ?bool $output_same;
+    public bool $test_result;
 
     public function __construct(string $path, string $name) {
-        $this->parse_stdout_path = "$path/$name.tmpparse";
-        $this->int_stdout_path = "$path/$name.tmpint";
-        $this->stderr_path = "$path/$name.tmperr";
+        $this->test_name = $name;
+        $this->test_path = "$path/$name";
+        // declare temporary files paths
+        $this->parse_stdout_path = "$this->test_path.tmpparse";
+        $this->int_stdout_path = "$this->test_path.tmpint";
+        $this->stderr_path = "$this->test_path.tmperr";
         // get expected return code from file
-        $this->expected_code = intval(file_get_contents("$path/$name.rc"));
+        $this->expected_code = intval(file_get_contents("$this->test_path.rc"));
     }
 
     public function clean(bool $parse_only) {

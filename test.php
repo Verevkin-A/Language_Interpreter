@@ -32,5 +32,5 @@ foreach ($tests->tests as $name => $test) {
     }
 }
 // create html representation of test results
-$html = new CreateHTML();
+$html = new CreateHTML($tests_results);
 echo $html->get_html();

@@ -60,17 +60,19 @@ final class TestItem
         exec($command, result_code: $res->returned_code);
         // check if expected and actual returned codes are different
         if ($res->returned_code != $res->expected_code) {
+            $res->test_result = false;
             return;
         }
         // if code return error there is no point in output comparison
         if ($res->expected_code != 0) {
+            $res->test_result = true;
             return;
         }
         // compare output with jexam
         if ($this->args->parse_only) {
             $comp_command = "java -jar " . $this->args->jexam . " $this->out $res->parse_stdout_path delta.xml " . $this->args->options;
             exec($comp_command, result_code: $jexam_output);
-            $res->output_same = !$jexam_output;     # jexam returns 0 in case of no difference
+            $res->test_result = $res->output_same = !$jexam_output;     # jexam returns 0 in case of no difference
             @unlink("delta.xml");
         }
     }
@@ -83,16 +85,18 @@ final class TestItem
         exec($command, result_code: $res->returned_code);
         // check if expected and actual returned codes are different
         if ($res->returned_code != $res->expected_code) {
+            $res->test_result = false;
             return;
         }
         // if code return error there is no point in output comparison
         if ($res->expected_code != 0) {
+            $res->test_result = true;
             return;
         }
         // compare with expected output
         $output = dirname($this->src). "/$this->name.out";
         $comp_command = "diff $res->int_stdout_path $output";
         exec($comp_command, result_code: $diff_ret);
-        $res->output_same = !$diff_ret;     # diff returns 0 in case of no difference
+        $res->test_result = $res->output_same = !$diff_ret;     # diff returns 0 in case of no difference
     }
 }
