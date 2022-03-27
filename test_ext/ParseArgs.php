@@ -6,6 +6,9 @@
 
 require_once "TestUtils.php";
 
+/**
+ * Handling program arguments
+ */
 final class ParseArgs
 {
     // arguments default values
@@ -20,7 +23,7 @@ final class ParseArgs
     public string $options = "/pub/courses/ipp/jexamxml/options";
     public bool $noclean = false;
     // help message
-    protected const HELP = <<<EOD
+    private const HELP = <<<EOD
             usage: php8.1 test.php [--help] [--directory [~/src]] [--recursive] [--parse-script [~/src]]
             [--int-script [~/src]] [--parse-only] [--int-only] [--jexampath [~/src]] [--noclean]
 
@@ -46,6 +49,11 @@ final class ParseArgs
     protected array $args;
     protected TestUtils $utils;
 
+    /**
+     * ParseArgs constructor
+     *
+     * @param int $argc number of passed arguments
+     */
     public function __construct(int $argc) {
         // declare utils
         $this->utils = new TestUtils();
@@ -58,6 +66,12 @@ final class ParseArgs
         $this->set_params();
     }
 
+    /**
+     * Check if given path exist
+     *
+     * @param string $path path to check
+     * @return string processed path
+     */
     private function process_path(string $path): string {
         if (!($processed_path = realpath($path))) {
             $this->utils->error($this->utils::BAD_DIR, "file or directory doesn't exist ($path)");
@@ -65,6 +79,11 @@ final class ParseArgs
         return $processed_path;
     }
 
+    /**
+     * Check fi help parameter was passed
+     *
+     * If it was, print help message and exit program with success code
+     */
     protected function check_help() {
         if (key_exists("help", $this->args)) {
             if (count($this->args) == 1) {
@@ -76,6 +95,9 @@ final class ParseArgs
         }
     }
 
+    /**
+     * Check if parameters were inputted correctly
+     */
     protected function check_params() {
         // check for help parameter
         $this->check_help();
@@ -94,6 +116,9 @@ final class ParseArgs
         }
     }
 
+    /**
+     * Save passed parameters
+     */
     public function set_params() {
         // set boolean parameters
         $this->recursive = key_exists("recursive", $this->args);

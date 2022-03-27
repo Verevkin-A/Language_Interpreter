@@ -7,16 +7,29 @@
 require_once "ParseArgs.php";
 require_once "TestItem.php";
 
+/**
+ * Finds and filter tests for future testing
+ */
 final class FindTests
 {
     public ParseArgs $args;
     // define test array
     public array $tests = [];
 
+    /**
+     * FindTests constructor
+     *
+     * @param ParseArgs $args program arguments
+     */
     public function __construct(ParseArgs $args) {
         $this->args = $args;
     }
 
+    /**
+     * Finds tests and save their paths
+     *
+     * @param string $dir directory with tests
+     */
     public function find_tests(string $dir) {
         // check each file in directory
         foreach (scandir($dir) as $file) {

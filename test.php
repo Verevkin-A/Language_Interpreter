@@ -28,7 +28,7 @@ foreach ($tests->tests as $name => $test) {
     $tests_results[$name] = $test->run_test();
     //clean temporary files
     if (!$args_parser->noclean) {
-        $tests_results[$name]->clean($args_parser->parse_only);
+        $tests_results[$name]->clean();
     }
 }
 // create html representation of test results

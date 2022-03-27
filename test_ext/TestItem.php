@@ -6,6 +6,9 @@
 
 require_once "TestResult.php";
 
+/**
+ * Class representing single testing item
+ */
 final class TestItem
 {
     protected string $php = "php";  # TODO php8.1
@@ -19,14 +22,26 @@ final class TestItem
 
     protected ParseArgs $args;
 
+    /**
+     * TestItem constructor
+     *
+     * @param string $name name of the test
+     * @param ParseArgs $args program arguments
+     */
     public function __construct(string $name, ParseArgs $args) {
         $this->name = $name;
         $this->args = $args;
     }
 
+    /**
+     * Create missing files for test suit
+     *
+     * @return bool True in case of success, False otherwise
+     */
     public function set_test(): bool {
         // check if .src file present
         if (!isset($this->src)) {
+            // skip the test if .src file is missing
             return false;
         }
         // check for other file extensions and create them if needed
@@ -42,6 +57,11 @@ final class TestItem
         return true;
     }
 
+    /**
+     * Run tests according to given parameters
+     *
+     * @return TestResult test result
+     */
     public function run_test(): TestResult {
         // initialize new test case result
         $res = new TestResult(dirname($this->src), $this->name);
@@ -54,6 +74,11 @@ final class TestItem
         return $res;
     }
 
+    /**
+     * Execute tests on parser
+     *
+     * @param TestResult $res test instance
+     */
     public function run_parser_test(TestResult $res) {
         // execute parser
         $command = "$this->php " . $this->args->parse . " < $this->src > $res->parse_stdout_path 2> $res->stderr_path";
@@ -77,6 +102,11 @@ final class TestItem
         }
     }
 
+    /**
+     * Execute tests on interpret
+     *
+     * @param TestResult $res test instance
+     */
     private function run_interpret_test(TestResult $res) {
         // execute interpret
         $source = $this->args->both ? $res->parse_stdout_path : $this->src;
