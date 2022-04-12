@@ -37,22 +37,42 @@ class Program:
 All interpret parts were treated as different subsystems, 
 which were unified in facade class, 
 applying `Facade` design pattern architecture.
-## Arguments processing
+- ## Arguments processing
 At the execution beginning, provided interpret arguments are collected
-and validated. For arguments collection was used python library `argparse`.
+and validated. For arguments collection was used python module `argparse`.
 Given input and source files were checked for existence 
-and sufficient reading rights
+and sufficient reading permissions.
 
-## XML processing
+- ## XML processing
+After the arguments have been collected, all elements with instructions and 
+corresponding arguments are picked, validated and sorted from the 
+provided XML source file. To simplify searching in XML document, 
+was used python module `xml.etree.ElementTree`.
 
-## Program evaluation
+- ## Program evaluation
+When all instructions and labels are saved, program execution can start.
+All frames, stacks and counters are initialized in the `Singleton` program instance.
+Instructions one by one are evaluated and processed.
 
 # Testing suit
 
-## Arguments processing
+- ## Arguments processing
+The script arguments are processed first. File paths are validated for 
+existence and sufficient rights to read and execute. Optional parameters 
+are set and checked for forbidden combinations. For easier arguments processing
+was used php function `getopt`.
 
-## Test cases searching
+- ## Test cases searching and execution
+After all arguments have been saved, in the chosen or set by default directory
+searching for tests is started. Depending on the `--recursive` parameter,
+subdirectories are also checked for tests. Each found test case is 
+saved into array as `TestItem` object.
 
-## Test cases execution
+Array with tests is looped trough. Each saved test case is evaluated.
+Tests return codes and outputs are saved for future reference.
 
-## Building html with results
+- ## Building html with results
+Class `CreateHTML` is responsible for creating and saving output html/css file 
+with test results. For each test result is created a row with all needed information 
+from the test case for debugging possibility. Output page is made using 
+php built-in `DOM(Document Object Model)` parser.
