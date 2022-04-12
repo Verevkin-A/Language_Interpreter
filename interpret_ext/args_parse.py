@@ -37,11 +37,11 @@ class ArgsParse:
         try:
             self.args, self._unknown_args = self._parser.parse_known_args()
         except FileNotFoundError:
-            Utils.error("Error: can't open file", RetCodes.OPEN_IN_ERR)
+            Utils.error("can't open file", RetCodes.OPEN_IN_ERR)
         except PermissionError:
-            Utils.error("Error: insufficient permissions", RetCodes.OPEN_IN_ERR)
+            Utils.error("insufficient permissions", RetCodes.OPEN_IN_ERR)
         except Exception:
-            Utils.error("Error: internal", RetCodes.INTERNAL_ERR)
+            Utils.error("internal", RetCodes.INTERNAL_ERR)
         self.check_args()
 
     def check_args(self) -> None:
@@ -51,11 +51,11 @@ class ArgsParse:
         and check if parameters are valid
         """
         if self.get_source is stdin and self.get_input is stdin:
-            Utils.error("Error: must exist at least one of the source or input parameters", RetCodes.PARAM_ERR)
+            Utils.error("must exist at least one of the source or input parameters", RetCodes.PARAM_ERR)
         elif self.get_source is None or self.get_input is None:
-            Utils.error("Error: can't open file", RetCodes.OPEN_IN_ERR)
+            Utils.error("can't open file", RetCodes.OPEN_IN_ERR)
         elif self._unknown_args:
-            Utils.error("Error: unknown parameter", RetCodes.PARAM_ERR)
+            Utils.error("unknown parameter", RetCodes.PARAM_ERR)
 
     @staticmethod
     def check_help() -> None:
@@ -64,7 +64,7 @@ class ArgsParse:
         Raise parameter error if it's true
         """
         if ("--help" in argv or "-h" in argv) and len(argv) > 2:
-            Utils.error("Error: -h/--help can't be combined with other parameters", RetCodes.PARAM_ERR)
+            Utils.error("-h/--help can't be combined with other parameters", RetCodes.PARAM_ERR)
 
     @property
     def get_source(self) -> TextIO:

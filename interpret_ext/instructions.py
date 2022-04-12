@@ -19,17 +19,27 @@ class InstInterface(ABC):
 
 
 class Instruction:
+    """
+    General instruction class
+    Inherited by all instructions
+    """
     def __init__(self, arguments: List):
         self.arguments: List = arguments
+        # get singleton program instance
         self.program: Program = Program.get_instance()
 
 
 class Createframe(Instruction):
+    """Create empty temporary frame"""
     def eval(self):
         self.program.tmp_frame = {}
 
 
 class Pushframe(Instruction):
+    """
+    Push temporary frame on local frame
+    Unset temporary frame after
+    """
     def eval(self):
         if self.program.get_tmp_frame is None:
             Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
@@ -38,6 +48,10 @@ class Pushframe(Instruction):
 
 
 class Popframe(Instruction):
+    """
+    Pop frame, from top of the local frames, on temporary frame
+    Throws error if local frame is emplty
+    """
     def eval(self):
         if len(self.program.get_local_frame) == 0:
             Utils.error("accessing not existing frame", RetCodes.FRAME_NOT_EXIST_ERR)
@@ -45,6 +59,10 @@ class Popframe(Instruction):
 
 
 class Return(Instruction):
+    """
+    Return from function on previous position
+    Throws error if not called from function
+    """
     def eval(self):
         if len(self.program.get_call_stack) == 0:
             Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
@@ -52,11 +70,16 @@ class Return(Instruction):
 
 
 class Break(Instruction):
+    """Prints current program stats on stderr"""
     def eval(self):
         print(self.program.get_stats(), file=stderr)
 
 
 class Defvar(Instruction):
+    """
+    New variable definition
+    Throws error if variable with stated name already exist
+    """
     def eval(self):
         if self.program.is_exist(self.arguments[0]):
             Utils.error("redefinition of variable", RetCodes.SEMANTIC_ERR)
@@ -64,6 +87,10 @@ class Defvar(Instruction):
 
 
 class Pops(Instruction):
+    """
+    Pop value from top of the data stack
+    Throws error if data stack is empty
+    """
     def eval(self):
         if len(self.program.get_data_stack) == 0:
             Utils.error("missing value", RetCodes.VALUE_NOT_EXIST_ERR)
@@ -71,11 +98,17 @@ class Pops(Instruction):
 
 
 class Jump(Instruction):
+    """Jump on the stated label"""
     def eval(self):
         self.program.program_ptr = self.program.get_labels[self.arguments[0].get_value]  # set pointer on jumped label
 
 
 class Call(Jump):
+    """
+    Function call
+    Save program counter position on call stack for future return
+    Throws error if label doesn't exist
+    """
     def eval(self):
         if self.arguments[0].get_value not in self.program.get_labels.keys():
             Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
@@ -84,16 +117,19 @@ class Call(Jump):
 
 
 class Label(Instruction):
+    """New label definition"""
     def eval(self):
         return self.arguments[0].get_value
 
 
 class Pushs(Instruction):
     def eval(self):
+        """Push value on top of the data stack"""
         self.program.data_stack.append(self.program.get_value(self.arguments[0]))
 
 
 class Write(Instruction):
+    """Write argument value on stdout"""
     def eval(self):
         const = self.program.get_value(self.arguments[0])
         if const.get_type == "nil":
@@ -103,6 +139,10 @@ class Write(Instruction):
 
 
 class Exit(Instruction):
+    """
+    Exit program with given return code
+    Throws error on not existing error code or unsuitable argument type
+    """
     def eval(self):
         const = self.program.get_value(self.arguments[0])
         if const.get_type != "int":
@@ -114,17 +154,23 @@ class Exit(Instruction):
 
 
 class Dprint(Instruction):
+    """Print argument value on stderr"""
     def eval(self):
         const = self.program.get_value(self.arguments[0])
         print(const.get_value, file=stderr)
 
 
 class Move(Instruction):
+    """Set variable with given value"""
     def eval(self):
         self.program.var_set(self.arguments[0], self.program.get_value(self.arguments[1]))
 
 
 class Int2Char(Instruction):
+    """
+    Converting integer on suitable ascii character
+    Throws error on unsuitable argument type
+    """
     def eval(self):
         const = self.program.get_value(self.arguments[1])
         if const.get_type != "int":
@@ -137,6 +183,10 @@ class Int2Char(Instruction):
 
 
 class Strlen(Instruction):
+    """
+    Count length of given string
+    Throws error on unsuitable argument type
+    """
     def eval(self):
         const = self.program.get_value(self.arguments[1])
         if const.get_type != "string":
@@ -145,6 +195,7 @@ class Strlen(Instruction):
 
 
 class Type(Instruction):
+    """Get type of the given argument"""
     def eval(self):
         const = self.program.get_value(self.arguments[1], True)     # will return None in case of uninitialized variable
         if const is None:
@@ -154,6 +205,10 @@ class Type(Instruction):
 
 
 class Not(Instruction):
+    """
+    Set boolean value on opposite
+    Throws error on unsuitable argument type
+    """
     def eval(self):
         const = self.program.get_value(self.arguments[1])
         if const.get_type != "bool":
@@ -163,6 +218,7 @@ class Not(Instruction):
 
 
 class Read(Instruction):
+    """Read input"""
     def eval(self):
         type_: str = self.arguments[1].get_value
         if self.program.get_input is stdin:
@@ -184,6 +240,10 @@ class Read(Instruction):
 
 
 class Add(Instruction):
+    """
+    Add 2 integer values
+    Throws error on unsuitable type
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -194,6 +254,10 @@ class Add(Instruction):
 
 
 class Sub(Instruction):
+    """
+    Subtract 2 integer values
+    Throws error on unsuitable type
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -204,6 +268,10 @@ class Sub(Instruction):
 
 
 class Mul(Instruction):
+    """
+    Multiply 2 integer values
+    Throws error on unsuitable type
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -214,6 +282,10 @@ class Mul(Instruction):
 
 
 class Idiv(Instruction):
+    """
+    Integer division of 2 integer values
+    Throws error on unsuitable type
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -227,6 +299,10 @@ class Idiv(Instruction):
 
 
 class Lt(Instruction):
+    """
+    Lesser than comparison 2 values
+    Return boolean value
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -235,6 +311,10 @@ class Lt(Instruction):
 
 
 class Gt(Instruction):
+    """
+    Greater than comparison 2 values
+    Return boolean value
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -243,6 +323,10 @@ class Gt(Instruction):
 
 
 class Eq(Instruction):
+    """
+    Equal comparison 2 values
+    Return boolean value
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -251,6 +335,10 @@ class Eq(Instruction):
 
 
 class And(Instruction):
+    """
+    Logical operation AND on 2 boolean values
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -263,6 +351,10 @@ class And(Instruction):
 
 
 class Or(Instruction):
+    """
+    Logical operation OR on 2 boolean values
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -275,6 +367,10 @@ class Or(Instruction):
 
 
 class Stri2Int(Instruction):
+    """
+    Get character ascii value on given position in string
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         string = self.program.get_value(self.arguments[1])
         position = self.program.get_value(self.arguments[2])
@@ -291,6 +387,10 @@ class Stri2Int(Instruction):
 
 
 class Concat(Instruction):
+    """
+    Concatenate 2 strings
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         const1 = self.program.get_value(self.arguments[1])
         const2 = self.program.get_value(self.arguments[2])
@@ -300,6 +400,10 @@ class Concat(Instruction):
 
 
 class Setchar(Instruction):
+    """
+    Change character on given position in string
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         string = self.program.get_value(self.arguments[0])
         position = self.program.get_value(self.arguments[1])
@@ -317,6 +421,10 @@ class Setchar(Instruction):
 
 
 class Getchar(Instruction):
+    """
+    Get character from given position in string
+    Throws error on unsuitable argument types
+    """
     def eval(self):
         string = self.program.get_value(self.arguments[1])
         position = self.program.get_value(self.arguments[2])
@@ -332,6 +440,10 @@ class Getchar(Instruction):
 
 
 class Jumpifeq(Jump):
+    """
+    Jump on given label if arguments types and values are equal
+    Throws error on different argument types or undefined label
+    """
     def eval(self):
         if self.arguments[0].get_value not in self.program.get_labels.keys():
             Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
@@ -347,6 +459,10 @@ class Jumpifeq(Jump):
 
 
 class Jumpifneq(Jump):
+    """
+    Jump on given label if arguments types and values are not equal
+    Throws error on different argument types or undefined label
+    """
     def eval(self):
         if self.arguments[0].get_value not in self.program.get_labels.keys():
             Utils.error("undefined label", RetCodes.SEMANTIC_ERR)

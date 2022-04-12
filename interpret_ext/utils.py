@@ -8,14 +8,19 @@ from interpret_ext.ret_codes import RetCodes
 
 
 class Utils:
+    """General helping utilities"""
     @staticmethod
     def error(err_msg: str, ret_code: int) -> None:
-        """Error exit
+        """
+        Error exit
 
         Print error message on stderr,
         exit program with given return code
+
+        :param err_msg: message to print on stderr
+        :param ret_code: error code
         """
-        stderr.write(err_msg + "\n")
+        stderr.write(f"Error: {err_msg}\n")
         exit(ret_code)
 
     @staticmethod

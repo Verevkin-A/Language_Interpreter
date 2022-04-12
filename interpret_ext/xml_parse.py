@@ -13,16 +13,19 @@ import interpret_ext.types_ as types
 class XMLParse:
     """XML parsing
     
-    # TODO
+    Collect and save elements from xml
+    Pass xml through validations
     """
-
     _ROOT_ATTRIBUTES: List = ["language", "name", "description"]
 
     def __init__(self, xml_source: TextIO):
-        """XML parser constructor
-        
+        """
+        XML parser constructor
+
         Create XML element tree instance,
         check if xml is valid
+
+        :param xml_source: xml source file
         """
         try:
             self._xml_tree: ET.ElementTree = ET.parse(xml_source)
@@ -43,9 +46,10 @@ class XMLParse:
             if inst.tag != "instruction":
                 Utils.error(f"unknown element ({inst.tag})", RetCodes.XML_STRUCT_ERR)
             inst_attributes = inst.attrib.keys()
+            # check for required keywords present
             if "order" not in inst_attributes or "opcode" not in inst_attributes or len(inst_attributes) != 2:
                 Utils.error("bad instruction attributes", RetCodes.XML_STRUCT_ERR)
-
+            # check if argument order is valid integer
             try:
                 inst_order: int = int(inst.attrib["order"])
                 if inst_order <= 0:
@@ -63,7 +67,7 @@ class XMLParse:
                 instructions_data[inst_order] = instruction
             else:
                 Utils.error(f"instruction order key already exist ({inst_order})", RetCodes.XML_STRUCT_ERR)
-
+        # sort instructions by their order
         sorted_instructions = dict(sorted(instructions_data.items()))     # sort instructions by their order
         return [value for value in sorted_instructions.values()]  # return only instructions
 
@@ -88,6 +92,7 @@ class XMLParse:
         :return: list with arguments
         """
         instruction_args: List = [types.Types]
+        # pass instruction arguments through required validations
         for arg in inst:
             if not match(r"^(arg[123])$", arg.tag):
                 Utils.error("unknown argument name", RetCodes.XML_STRUCT_ERR)
@@ -101,7 +106,7 @@ class XMLParse:
                     Utils.error("repeating argument order", RetCodes.XML_STRUCT_ERR)
                 else:
                     instruction_args.append(self.assign_type(arg_order, arg.attrib["type"], arg.text))
-
+        # sort arguments on their correct position
         instruction_args = sorted(instruction_args[1:])
         # check if arguments aren't missing
         if (len(instruction_args) == 2 and instruction_args[1].get_order != 2) or \
@@ -111,6 +116,14 @@ class XMLParse:
 
     @staticmethod
     def assign_type(order: int, type_: str, value: str) -> types.Types:
+        """
+        Assign argument to suitable type class
+
+        :param order: argument order for future sorting
+        :param type_: argument type
+        :param value: argument value
+        :return: suitable argument type class instance
+        """
         if type_ == "int" or type_ == "bool" or type_ == "string" or type_ == "nil":
             return types.Constant(type_, value, order=order)
         elif type_ == "var":
