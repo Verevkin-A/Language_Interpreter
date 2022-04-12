@@ -98,8 +98,13 @@ class Pops(Instruction):
 
 
 class Jump(Instruction):
-    """Jump on the stated label"""
+    """
+    Jump on the stated label
+    Throws error on undefined label
+    """
     def eval(self):
+        if self.arguments[0].get_value not in self.program.get_labels.keys():
+            Utils.error("undefined label", RetCodes.SEMANTIC_ERR)
         self.program.program_ptr = self.program.get_labels[self.arguments[0].get_value]  # set pointer on jumped label
 
 
