@@ -19,7 +19,7 @@ was used *creational design pattern* `Singleton`
 over global variables. The `Singleton` pattern allows single program instance
 to share between all other classes, which making system easier for
 implementing, understanding and future maintaining. <br/>
-####Singleton implementation:
+#### Singleton implementation:
 ```python
 class Program:
     __instance = None
@@ -63,7 +63,7 @@ are set and checked for forbidden combinations. For easier arguments processing
 was used php function `getopt`.
 
 - ## Test cases searching and execution
-After all arguments have been saved, in the chosen or set by default directory
+After all arguments have been saved, in the chosen or set by default directory, 
 searching for tests is started. Depending on the `--recursive` parameter,
 subdirectories are also checked for tests. Each found test case is 
 saved into array as `TestItem` object.
